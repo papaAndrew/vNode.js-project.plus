@@ -1,10 +1,16 @@
-const DEFAULT_AVATAR = "/images/png-clipart-computer-icons-user-profile-user-avatar-blue-heroes.png";
+//const DEFAULT_AVATAR = "/images/png-clipart-computer-icons-user-profile-user-avatar-blue-heroes.png";
+const DEFAULT_AVATAR = "#";
+const MY_NICKNAME = "Это я";
+
+var refreshIntervalId;
 
 let oBoard = {
   userList: [],
   myUser: {
     nickname: "user",
+    peer: false,
     avatar: DEFAULT_AVATAR,
+    unread: [],
     state: 1
   },
   talkUser: false,
@@ -14,18 +20,23 @@ let oBoard = {
 
 function createUserCard(usrInfo) {
 
+  const onLabelClick = function () {
+    setTalkUser(usrInfo);
+    connect(oBoard.talkUser.peer);
+  }
   const card = document.createElement("span");
   card.classList.add("board-middle-desk-card");
 
+  /*
   const avatar = document.createElement("img");
   avatar.src = usrInfo.avatar;
   avatar.alt= `Аватар для ${usrInfo.nickname}`;
   card.appendChild(avatar);
-
+*/
   const label = document.createElement("a");
   label.href = "#";
   label.innerHTML = usrInfo.nickname;
-  label.addEventListener("click", () => setTalkUser(usrInfo));
+  label.addEventListener("click", onLabelClick);
   card.appendChild(label);
   
   return card;
@@ -94,16 +105,16 @@ function renderMiddleTalk(middle) {
   wrapper.classList.add("wrapper");
   wrapper.classList.add("board-middle-talk");
 
+  const dialog = document.createElement("textarea");
+  dialog.classList.add("board-middle-talk-dialog");
+  dialog.wrap="soft";
+  dialog.disabled = true;
+  wrapper.appendChild(dialog);
 
-  const inbound = document.createElement("div");
-  inbound.classList.add("board-middle-talk-inbound");
-  wrapper.appendChild(inbound);
-
-  const outbound = document.createElement("textarea");
-  outbound.classList.add("board-middle-talk-textarea");
-  outbound.placeholder ="Type message..";
-  outbound.required = true;
-  wrapper.appendChild(outbound);
+  const letter = document.createElement("textarea");
+  letter.classList.add("board-middle-talk-letter");
+  letter.wrap="soft";
+  wrapper.appendChild(letter);
 
   //<textarea placeholder="Type message.." name="msg" required></textarea>
   middle.appendChild(wrapper);
@@ -118,7 +129,9 @@ function renderMiddleDesk(middle) {
 
   for (let i = 0; i < oBoard.userList.length; i += 1) {
     usrInfo = oBoard.userList[i];
-    wrapper.appendChild(createUserCard(usrInfo));
+    if (usrInfo.peer !== oBoard.myUser.peer) {
+      wrapper.appendChild(createUserCard(usrInfo));
+    }
   }
   middle.appendChild(wrapper);
   return wrapper;
@@ -183,33 +196,28 @@ function render() {
   renderFooter();
 }
 
+
+
+function sendTextMessage() {
+  
+  const letter = document.querySelector(".board-middle-talk-letter");
+  if (letter.value) {
+    //console.log(textArea.value);
+    const data = {
+      sender: JSON.stringify(oBoard.myUser),
+      receiver: JSON.stringify(oBoard.talkUser),
+      text: letter.value,
+    }
+    sendChatMsg(oBoard.talkUser.peer, data);
+    transmitChatMsg(data);
+  }
+  letter.value = "";
+}
+
 /**
- * 
- * @param {UserInfo[]} userList 
+ * dummy
+ * @returns 
  */
- function setUserList(userList) {
-
-  oBoard.userList = userList;
-  render();
-}
-
-function setTalkUser(usrInfo) {
-
-  oBoard.talkUser = usrInfo;
-  render();
-}
-
-function sendTextMessage(event) {
-
-  const textArea = document.querySelector(".board-middle-talk-textarea");
-  console.log(textArea.value);
-  textArea.value = "";
-}
-
-function receiveTextMessage(text) {
-
-  const textArea = document.querySelector(".board-middle-talk-inbound");
-}
 function getUserList() {
   return [
     {
@@ -225,9 +233,110 @@ function getUserList() {
   ];
 }
 
+/**
+ * отобразить список корреспондентов
+ * @param {UserInfo[]} userList 
+ */
+ function setUserList(userList) {
 
-    //oBoard.myUser.nickname = prompt("Войти под имемем", "nickname");
-//    oBoard.talkUser = getUserList()[0];
+  oBoard.userList = userList;
+  render();
+}
 
-    const userList = getUserList();
-    setUserList(userList);
+/**
+ * назначить собеседника и переключить в соответсвующий режим
+  * @param {UserInfo | any } usrInfo  если собеседник задан, переключаемся в режим беседы, иначе - в режим доски
+ */
+function setTalkUser(usrInfo) {
+/* 
+  if (usrInfo.nickname === MY_NICKNAME) {
+    oBoard.talkUser = false;
+  } else {
+    oBoard.talkUser = usrInfo;
+  }
+ */  
+  oBoard.talkUser = usrInfo;
+  
+  if (usrInfo) {
+    clearInterval(refreshIntervalId);
+  } else {
+    refreshIntervalId = setInterval(() => {
+      getListOfPeers()
+    }, 1000);
+  }
+    
+
+  render();
+}
+
+/**
+ * назначить себя отправителем и переключить в режим доски
+ * @param {UserInfo} usrInfo   это я
+ */
+function setMyUser(usrInfo) {
+  oBoard.myUser = usrInfo;
+  setTalkUser(false);
+}
+
+function transmitChatMsg(data) {
+  const sender = JSON.parse(data.sender);
+  const receiver = JSON.parse(data.receiver);
+  const text = data.text;
+
+  const timestamp = new Date();
+  const subject = `${timestamp.toString()} from ${sender.nickname} to ${receiver.nickname}`;
+
+  const dialog = document.querySelector(".board-middle-talk-dialog");
+  dialog.value = `${dialog.value}\n\n${subject}\n${text}`;
+}
+
+/**
+ * поучение спика пиров и передача их в представление в виде списка корреспондентов
+ * @param {string[]} list 
+ */
+function transmitListOfPeers(list) {
+
+  const userList = list.map(
+     (item) => {
+       //const name = item === oBoard.myUser.nickname ? MY_NICKNAME : item;
+       const name = item;
+       return {
+        nickname: name,
+        peer: item,
+        avatar: DEFAULT_AVATAR,
+        state: 1,
+       }
+      });
+
+  setUserList(userList);
+}
+
+/**
+ * инициализация. запускать при старте
+ * назначить себя отправителем и переключить в режим доски
+ * @param { UserInfo | string | never } usrInfo 
+ */
+function transmitMyUser(usrInfo) {
+
+
+  if (typeof usrInfo === "string") {
+    setMyUser({
+      nickname: usrInfo,
+      peer: usrInfo,
+      avatar: DEFAULT_AVATAR,
+      state: 1
+    });
+  } else if (typeof usrInfo === "object") {
+    setMyUser(usrInfo);
+  } else {
+    setMyUser(false);
+  }
+  getListOfPeers();
+}
+
+
+function remoteCall(peerID) {
+
+  const usr = oBoard.userList.find((item) => item.peer === peerID);
+  setTalkUser(usr);
+}
