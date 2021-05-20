@@ -1,0 +1,156 @@
+* {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  box-sizing: border-box;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+body *{
+  border: 1px solid gray;
+  margin: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+main {
+  height: 99vh;
+  display: flex;
+  flex-direction: column;
+  align-content: space-between;
+}
+
+.wrapper {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  margin: 2px;
+}
+
+.board-header {
+  height: 10%;
+  background-color: lightskyblue;
+}
+
+.board-header-talk {
+  flex-direction: row;
+  align-items:flex-end;
+}
+
+.board-header-talk div {
+  display: flex;
+  align-items: center;
+  flex-grow: 4;
+}
+
+
+.board-header-talk img {
+  height: 100%;
+  width: 6em;
+}
+
+
+.board-middle {
+  display:flex;
+  height: 75%;
+}
+
+ 
+.board-middle-desk {
+  display:flex;
+  width: 100%;
+  height: 100%;
+  margin: 2px;
+  padding: 2%;
+  flex-direction:row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content:flex-start;
+}
+
+.board-middle-desk-card {
+  box-sizing:content-box;
+  padding: 5px;
+  border-radius: 10px;
+  display:flex;
+  flex-direction: column;
+  flex-basis: 5em;
+  text-align:center;
+}
+
+.board-middle-desk-card * {
+  display:block;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.board-middle-desk-card img {
+  width: 220px;
+  height: 200px;
+}
+
+.board-middle-talk {
+  display:inline-block;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+}
+
+.board-middle-talk * {
+  margin: 2px;
+  width: 100%;
+  height: 48%;
+}
+
+/* Full-width textarea */
+.board-middle-talk-textarea {
+  width: 100%;
+  padding: 15px;
+  background: #f1f1f1;
+  resize: none;
+  min-height: 200px;
+}
+
+/* When the textarea gets focus, do something */
+.board-middle-talk-textarea:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+.board-footer {
+  height: 14%;
+  background-color:wheat;
+  display: flex;
+  flex-direction: row;
+}
+
+.board-footer-talk {
+  flex-direction: column;
+  align-items:flex-end;
+}
+
+.board-footer-talk-send {
+  background-color: #04AA6D;
+  color: white;
+  padding: 16px 20px;
+  cursor: pointer;
+  width: 10%;
+  margin-bottom:10px;
+  opacity: 0.8;
+}
+
+.board-footer-talk-close {
+  background-color:lightcoral;
+  color: white;
+  padding: 16px 20px;
+  cursor: pointer;
+  width: 10%;
+  margin-bottom:10px;
+  opacity: 0.8;
+}
+
+/* Add some hover effects to buttons */
+.board-footer-talk button:hover {
+  opacity: 3;
+}
